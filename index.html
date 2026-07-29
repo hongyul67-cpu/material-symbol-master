@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>재료기호 마스터 — SM45C · SS400 · GC250 해독</title>
+<style>
+  :root{
+    --bg:#0b2540; --panel:#123459; --panel-light:#1c4474;
+    --text:#eaf4ff; --text-dim:#9fc1e0; --accent:#ffb454;
+    --correct:#5fd86f; --wrong:#ff6b6b; --grid:rgba(234,244,255,0.06);
+    --paper:#f4efe0; --ink:#1c3247; --link:#5bc8de;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;color:var(--text);min-height:100vh;padding:18px 14px 70px;
+    font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',-apple-system,sans-serif;
+    background:linear-gradient(var(--grid) 1px,transparent 1px) 0 0/40px 40px,
+               linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/40px 40px,var(--bg);}
+  .wrap{max-width:860px;margin:0 auto}
+  .eyebrow{font-size:.74rem;letter-spacing:.18em;color:var(--accent);text-transform:uppercase;font-weight:700;margin-bottom:6px}
+  h1{font-size:1.5rem;margin:0 0 4px}
+  .subtitle{color:var(--text-dim);font-size:.94rem;margin-bottom:16px;line-height:1.55}
+  .panel{background:var(--panel);border:1px solid rgba(234,244,255,.12);border-radius:14px;padding:20px;margin-bottom:16px}
+  .tabs{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
+  .tab{flex:1 1 128px;background:transparent;border:1px solid rgba(234,244,255,.22);color:var(--text-dim);
+       padding:11px 8px;border-radius:9px;cursor:pointer;font-size:.85rem;font-weight:700;font-family:inherit}
+  .tab:hover{border-color:var(--accent);color:var(--text)}
+  .tab[aria-pressed="true"]{background:var(--accent);color:#1a1306;border-color:var(--accent)}
+  .tab .done{color:var(--correct);font-size:.8rem}
+  .tab[aria-pressed="true"] .done{color:#1a6b28}
+
+  .guide{background:rgba(255,180,84,.1);border:1px solid rgba(255,180,84,.35);border-radius:10px;
+         padding:11px 14px;font-size:.87rem;color:var(--text-dim);line-height:1.6;margin-bottom:14px}
+  .guide b{color:var(--accent)}
+
+  .row{display:flex;align-items:center;gap:9px;flex-wrap:wrap;background:#0f2032;
+       border:1px solid rgba(234,244,255,.14);border-radius:10px;padding:9px 11px;margin-bottom:12px}
+  .row .lab{font-size:.72rem;color:var(--text-dim);letter-spacing:.08em;flex:none}
+  .seg{display:flex;gap:5px;flex-wrap:wrap}
+  .segBtn{background:transparent;border:1px solid rgba(234,244,255,.24);color:var(--text);padding:9px 12px;
+          border-radius:7px;cursor:pointer;font-weight:700;font-size:.82rem;font-family:ui-monospace,monospace}
+  .segBtn:hover{border-color:var(--link)}
+  .segBtn[aria-pressed="true"]{background:var(--link);color:#04121c;border-color:var(--link)}
+
+  /* 기호 해독기 */
+  .decoder{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:6px 0 4px}
+  .slot{background:var(--paper);border:3px solid #c8bfa6;border-radius:12px;min-width:92px;
+        padding:14px 12px 11px;text-align:center;cursor:pointer;font-family:inherit}
+  .slot .code{font-family:ui-monospace,monospace;font-size:1.7rem;font-weight:800;color:#1c3247;line-height:1}
+  .slot .role{font-size:.7rem;color:#7b8b99;margin-top:6px;letter-spacing:.05em}
+  .slot .mean{font-size:.8rem;color:#1a5f8f;font-weight:800;margin-top:6px;line-height:1.35;display:none}
+  .slot.open{border-color:var(--accent);background:#fffaf0}
+  .slot.open .mean{display:block}
+  .decHint{text-align:center;font-size:.83rem;color:var(--text-dim);margin-top:8px}
+  .matname{text-align:center;font-size:1rem;font-weight:800;color:var(--accent);margin:12px 0 2px}
+  .matuse{text-align:center;font-size:.86rem;color:var(--text-dim)}
+
+  table.t{width:100%;border-collapse:collapse;font-size:.84rem;margin-top:10px}
+  table.t th,table.t td{border:1px solid rgba(234,244,255,.16);padding:7px 8px;text-align:center}
+  table.t th{background:var(--panel-light);color:var(--text);font-weight:700}
+  table.t td{color:var(--text-dim)}
+  table.t td.k{color:var(--accent);font-weight:800;font-family:ui-monospace,monospace}
+  table.t tr.on td{background:rgba(255,180,84,.14);color:var(--text)}
+  table.t.parts td.nm{text-align:left}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:7px;margin-top:10px}
+  .card{background:#0f2032;border:1px solid rgba(234,244,255,.18);border-radius:9px;padding:10px 6px;
+        cursor:pointer;text-align:center;font-family:inherit;color:var(--text);min-height:56px}
+  .card .sym{font-family:ui-monospace,monospace;font-weight:800;color:var(--accent);font-size:1rem}
+  .card .nm{font-size:.75rem;color:var(--text-dim);margin-top:3px;line-height:1.3}
+  .card.flip{background:var(--panel-light);border-color:var(--link)}
+  .card.flip .sym{color:var(--link);font-size:.82rem}
+
+  .btn{border:none;border-radius:10px;background:var(--accent);color:#1a1306;font-weight:800;
+       font-size:.95rem;padding:13px 20px;cursor:pointer;min-height:50px;font-family:inherit}
+  .btn.ghost{background:transparent;border:1px solid rgba(234,244,255,.3);color:var(--text)}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .btnrow{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+
+  .learnnav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+  .dots{display:flex;gap:6px}
+  .dot{width:10px;height:10px;border-radius:50%;background:rgba(234,244,255,.22)}
+  .dot.on{background:var(--accent)} .dot.seen{background:var(--link)}
+  h2.step{font-size:1.12rem;margin:0 0 8px;color:var(--accent)}
+  .body{font-size:.93rem;line-height:1.7;color:var(--text-dim)}
+  .body b{color:var(--text)} .body .hl{color:var(--accent);font-weight:800}
+
+  /* 조립 게임 */
+  .build{background:var(--paper);border-radius:12px;padding:16px 12px;margin-top:6px}
+  .bslots{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  .bslot{min-width:88px;min-height:62px;border:3px dashed #b3a98d;border-radius:11px;background:#fffdf6;
+         display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-family:inherit;padding:6px}
+  .bslot .ph{font-size:.72rem;color:#9aa7b3;line-height:1.3}
+  .bslot .val{font-family:ui-monospace,monospace;font-size:1.5rem;font-weight:800;color:#1c3247}
+  .bslot.filled{border-style:solid;border-color:var(--accent);background:#fff6e6}
+  .bslot.ok{border-color:#1a7f3c;background:#e3f5ec} .bslot.no{border-color:#d0342c;background:#fbecea}
+  .pool{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+  .chip{background:#1c3247;color:#f4efe0;border:none;border-radius:9px;padding:11px 15px;cursor:pointer;
+        font-family:ui-monospace,monospace;font-size:1rem;font-weight:800;min-height:44px}
+  .chip:hover{background:#2b4a66} .chip.used{opacity:.28;cursor:default}
+  .buildLbl{text-align:center;font-size:.78rem;color:#7b8b99;margin-bottom:9px;letter-spacing:.05em}
+
+  .prompt{font-size:1.02rem;margin:14px 0 11px;line-height:1.55}
+  .prompt b{color:var(--accent)}
+  .choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .choices.one{grid-template-columns:1fr}
+  .choice{background:var(--paper);border:3px solid transparent;border-radius:11px;padding:12px 10px;
+          cursor:pointer;display:flex;align-items:flex-start;gap:8px;font-family:inherit;text-align:left;min-height:56px}
+  .choice .num{font-size:.8rem;font-weight:800;color:#5b7286;flex:none;line-height:1.4}
+  .choice .tx{font-weight:800;color:#1c3247;font-size:.93rem;line-height:1.45}
+  .choice .tx code{font-family:ui-monospace,monospace;color:#0f5c8c}
+  .choice:hover:not(:disabled){border-color:var(--link)}
+  .choice.sel{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,180,84,.3)}
+  .choice.correct{border-color:var(--correct);background:#e3f5ec}
+  .choice.wrong{border-color:var(--wrong);background:#fbecea}
+  .choice:disabled{cursor:default}
+
+  .partlist{background:var(--paper);border-radius:12px;padding:12px;margin-top:4px}
+  .partlist table{width:100%;border-collapse:collapse;font-size:.84rem}
+  .partlist th,.partlist td{border:1px solid #c8bfa6;padding:6px 8px;color:#1c3247;text-align:center}
+  .partlist th{background:#e7dfc9;font-weight:800}
+  .partlist td.m{font-family:ui-monospace,monospace;font-weight:800}
+  .partlist tr.hi td{background:#fff0d2}
+
+  .scorebar{display:flex;gap:16px;flex-wrap:wrap;font-size:.88rem;color:var(--text-dim);margin-top:13px}
+  .scorebar b{color:var(--text)}
+  .pill{background:var(--panel-light);border-radius:20px;padding:4px 13px;font-size:.82rem;color:var(--accent);font-weight:800}
+  .toast{font-size:.93rem;font-weight:700;min-height:22px;margin-top:10px;line-height:1.5}
+  .toast.ok{color:var(--correct)} .toast.no{color:var(--wrong)} .toast.go{color:var(--accent)}
+  .explain{background:rgba(91,200,222,.09);border-left:3px solid var(--link);border-radius:0 8px 8px 0;
+           padding:11px 13px;margin-top:11px;font-size:.87rem;color:var(--text-dim);line-height:1.65}
+  .explain b{color:var(--link)}
+  .explain code{font-family:ui-monospace,monospace;color:var(--accent)}
+  .hidden{display:none !important}
+  .links{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .links a{color:var(--link);text-decoration:none;font-size:.83rem;border:1px solid rgba(91,200,222,.4);padding:7px 12px;border-radius:8px}
+  .links a:hover{background:rgba(91,200,222,.12)}
+  footer{max-width:860px;margin:14px auto 0;color:var(--text-dim);font-size:.8rem;line-height:1.6;text-align:center}
+  @media(max-width:560px){
+    body{padding:14px 10px 60px} .panel{padding:15px}
+    .choices{grid-template-columns:1fr} .prompt{font-size:.97rem}
+    .slot{min-width:80px;padding:11px 8px} .slot .code{font-size:1.4rem}
+    .tab{padding:12px 8px} table.t{font-size:.78rem} table.t th,table.t td{padding:6px 4px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Material Symbols · 기계 재료 기호</div>
+  <h1>재료기호 마스터</h1>
+  <p class="subtitle">도면 부품란의 <b>SM45C · GC250 · SC450</b> 같은 암호를 읽는 법입니다. 규칙은 하나 — <b>재질 + 규격·제품명 + 종류(강도·탄소량)</b> 세 부분으로 끊어 읽습니다.</p>
+
+  <div class="tabs" role="group" aria-label="모드 선택">
+    <button class="tab" id="tabLearn" aria-pressed="true">📖 배우기 <span class="done hidden" id="dLearn">✓</span></button>
+    <button class="tab" id="tabBuild" aria-pressed="false">도전 ① 기호 조립</button>
+    <button class="tab" id="tabRead" aria-pressed="false">도전 ② 기호 해독</button>
+    <button class="tab" id="tabPart" aria-pressed="false">도전 ③ 부품란 읽기</button>
+    <button class="tab" id="tabExam" aria-pressed="false">🎯 종합시험</button>
+  </div>
+
+  <section id="secLearn">
+    <div class="guide">처음이라면 <b>📖 배우기</b>부터. <b>맞힐 필요가 없습니다</b> — 기호 조각을 눌러 뜻이 나오는 걸 보기만 하면 됩니다.</div>
+    <div class="panel">
+      <div class="learnnav">
+        <div class="dots" id="learnDots"></div>
+        <span class="pill" id="learnPos">1 / 4</span>
+      </div>
+      <h2 class="step" id="learnTitle"></h2>
+      <div class="body" id="learnBody"></div>
+
+      <div id="wPart" class="hidden">
+        <div class="partlist" id="partTable"></div>
+        <div class="explain" style="margin-top:12px">위는 교과서의 <b>동력 전달 장치</b> 부품란입니다. 재질칸에 ‘회주철’이라고 한글로 쓰지 않고 <b>GC250</b>처럼 규격 기호로 씁니다. 규격이 없는 <b>비금속 재료만</b> 이름을 직접 씁니다.</div>
+      </div>
+
+      <div id="wDec" class="hidden">
+        <div class="row"><span class="lab">재료</span><div class="seg" id="decSeg"></div></div>
+        <div class="decoder" id="decoder"></div>
+        <div class="decHint" id="decHint">조각을 눌러 뜻을 확인하세요.</div>
+        <div class="matname" id="decName"></div>
+        <div class="matuse" id="decUse"></div>
+        <div class="btnrow"><button class="btn ghost" id="btnRevealAll">전부 펼치기</button></div>
+      </div>
+
+      <div id="wTable" class="hidden">
+        <div class="row"><span class="lab">보기</span><div class="seg" id="tblSeg"></div></div>
+        <div class="cards" id="symCards"></div>
+        <div class="explain" style="margin-top:12px" id="tblTip"></div>
+      </div>
+
+      <div id="wSuffix" class="hidden">
+        <table class="t parts" id="sufTable"></table>
+        <div class="explain" style="margin-top:12px">부품란에 <code>SCM415</code>만 쓰고 열처리는 <b>비고란이나 주서</b>에 적기도 합니다. 예: <b>전체 열처리 HRC 50±2</b>.</div>
+      </div>
+
+      <div class="btnrow">
+        <button class="btn ghost" id="btnPrev">← 이전</button>
+        <button class="btn" id="btnNextPage">다음 →</button>
+        <button class="btn hidden" id="btnGoTest">🎯 이제 테스트 하러 가기</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="secQuiz" class="hidden">
+    <div class="panel">
+      <div class="prompt" id="qPrompt"></div>
+      <div class="build hidden" id="qBuild">
+        <div class="buildLbl">아래 조각을 눌러 왼쪽부터 채우세요 · 채운 칸을 누르면 되돌아갑니다</div>
+        <div class="bslots" id="bSlots"></div>
+        <div class="pool" id="bPool"></div>
+      </div>
+      <div class="partlist hidden" id="qPart"></div>
+      <div class="choices" id="qChoices" style="margin-top:14px"></div>
+      <div class="btnrow">
+        <button class="btn" id="btnSubmit" disabled>제출</button>
+        <button class="btn ghost hidden" id="btnNext">다음 문제 →</button>
+        <button class="btn ghost" id="btnRestart">처음부터</button>
+      </div>
+      <div class="scorebar">
+        <span>문제 <b id="qRound">1</b> / <b id="qTotal">8</b></span>
+        <span>맞은 개수 <b id="qScore">0</b></span>
+        <span class="pill" id="qCombo">연속 0</span>
+      </div>
+      <div class="toast go" id="qToast">보기를 고른 뒤 <b>제출</b>을 누르세요.</div>
+      <div class="explain hidden" id="qExplain"></div>
+    </div>
+  </section>
+
+  <div class="panel" style="padding:16px 20px">
+    <div style="font-size:.84rem;color:var(--text-dim);margin-bottom:8px">🔗 같은 단원의 다른 도구</div>
+    <div class="links">
+      <a href="https://hongyul67-cpu.github.io/domyeon-master/" target="_blank" rel="noopener">도면읽기 마스터</a>
+      <a href="https://hongyul67-cpu.github.io/mechanical-drawing-symbols/" target="_blank" rel="noopener">기계제도 기호 마스터</a>
+      <a href="https://hongyul67-cpu.github.io/paper-scale-master/" target="_blank" rel="noopener">도면 양식·척도 마스터</a>
+      <a href="https://hongyul67-cpu.github.io/dimensioning-master/" target="_blank" rel="noopener">치수기입 마스터</a>
+    </div>
+  </div>
+</div>
+<footer>기계제도 Ⅰ. 기계 제도에 의한 도면 그리기 — 9. 기계 재료 기호 표시<br>제작: hong · 기계 계열 특성화고 수업 보조 도구</footer>
+
+<script src="https://hongyul67-cpu.github.io/links/collector.js" data-tool="재료기호 마스터"></script>
+<script src="https://hongyul67-cpu.github.io/links/fx.js"></script>
+<script>
+(function(){
+"use strict";
+const el=id=>document.getElementById(id);
+const rnd=n=>Math.floor(Math.random()*n), pick=a=>a[rnd(a.length)];
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;}
+const has=n=>typeof FX!=="undefined" && typeof FX[n]==="function";
+const fxRight=e=>{ if(has("burst")) FX.burst(e); if(has("punch")) FX.punch(e); };
+const fxWrong =e=>{ if(has("shake")) FX.shake(e); if(has("flash")) FX.flash(); };
+const fxBanner=o=>{ if(has("banner")) FX.banner(o); };
+const fxStars =m=>has("starsFor")?FX.starsFor(m):3;
+
+/* ============ 데이터 (기계제도 Ⅰ-9, 표 Ⅰ-18~21) ============ */
+// 첫 부분 — 재질
+const FIRST=[
+  ["S","강","Steel"],["F","철","Ferrum"],["GC","회주철","Gray casting"],["Al","알루미늄","Aluminium"],
+  ["Cu","구리","Copper"],["Br","청동","Bronze"],["Bs","황동","Brass"],["PB","인청동","Phosphor bronze"],
+  ["Cr","크롬","Chromium"],["Mg","마그네슘 합금","Magnesium alloy"],["WM","화이트메탈","White metal"],
+  ["HBs","고강도 황동","High strength brass"],["HMn","고망가니즈","High manganese"],["SM","구조용강","Machine structure steel"]
+];
+// 중간 부분 — 규격명·제품명
+const MIDDLE=[
+  ["S","일반 구조용 압연재","Rolled steel for general structure"],["C","주조품","Casting"],["F","단조품","Forging"],
+  ["P","판","Plate"],["B","봉","Bar"],["T","관","Tube"],["W","선","Wire"],["PW","피아노선","Piano wire"],
+  ["CP","냉간 압연 강판","Cold rolled plate"],["DC","다이캐스팅","Die casting"],["K","공구강","Tool steel"],
+  ["TC","탄소 공구강","Carbon tool steel"],["KH","고속도 공구강","High speed tool steel"],
+  ["Cr","크롬강","Chromium steel"],["NC","니켈 크롬강","Nickel chromium steel"],
+  ["NCM","니켈크롬몰리브덴강","Nickel chromium molybdenum steel"]
+];
+// 끝에 덧붙이는 기호
+const SUFFIX=[
+  ["조직 상태","A","어닐링한 상태(풀림)"],["조직 상태","H","경질"],["조직 상태","1/2H","1/2 경질"],["조직 상태","S","표준 조질"],
+  ["열처리","N","노멀라이징(불림)"],["열처리","Q","퀜칭(담금질)·템퍼링(뜨임)"],["열처리","SR","시험편에만 노멀라이징"],
+  ["열처리","TN","시험편에 용접 후 열처리"],
+  ["표면 마무리","D","무광택 마무리"],["표면 마무리","B","광택 마무리"],
+  ["기타","CF","원심력 주강관"],["기타","K","킬드강"]
+];
+// 해독·조립 대상 재료
+const MAT=[
+  {c:"SM45C", p:[["S","재질 — 강(Steel)"],["M","규격명 — 기계 구조용"],["45C","종류 — 평균 탄소 함유량 0.45%"]],
+   n:"기계 구조용 탄소강", u:"축 · 육각 볼트 · 너트처럼 강도가 필요한 기계 부품", build:true},
+  {c:"SC450", p:[["S","재질 — 강"],["C","제품명 — 주조품(Casting)"],["450","종류 — 최저 인장 강도 450 N/mm²"]],
+   n:"탄소 주강품", u:"강도가 필요한 주물 부품(스퍼 기어·풀리 등)", build:true},
+  {c:"SS330", p:[["S","재질 — 강"],["S","제품명 — 일반 구조용 압연재"],["330","종류 — 최저 인장 강도 330 N/mm²"]],
+   n:"일반 구조용 압연 강재", u:"구조물 · 프레임 등 일반 구조용", build:true},
+  {c:"SS400", p:[["S","재질 — 강"],["S","제품명 — 일반 구조용 압연재"],["400","종류 — 최저 인장 강도 400 N/mm²"]],
+   n:"일반 구조용 압연 강재", u:"현장에서 가장 많이 쓰는 일반 구조용 강재(프레임 · 브래킷)", build:true},
+  {c:"SS540", p:[["S","재질 — 강"],["S","제품명 — 일반 구조용 압연재"],["540","종류 — 최저 인장 강도 540 N/mm²"]],
+   n:"일반 구조용 압연 강재", u:"구조물 · 프레임 등 일반 구조용", build:true},
+  {c:"GC250", p:[["GC","재질 — 회주철(Gray Casting)"],["250","종류 — 최저 인장 강도 250 N/mm²"]],
+   n:"회주철품", u:"본체 · 베이스 · 커버 · V 벨트 풀리(진동 흡수·주조성 좋음)", build:true},
+  {c:"ALDC6", p:[["AL","재질 — 알루미늄"],["DC","제품명 — 다이캐스팅"],["6","종류 — 6종"]],
+   n:"다이캐스팅용 알루미늄 합금", u:"가볍고 복잡한 모양의 대량 생산 부품", build:true},
+  {c:"SCP1", p:[["S","재질 — 강"],["CP","제품명 — 냉간 압연 강판"],["1","종류 — 1종"]],
+   n:"냉간 압연 강판", u:"판금 · 외판 등", build:true},
+  {c:"STC5", p:[["S","재질 — 강"],["TC","규격명 — 탄소 공구강"],["5","종류 — 5종"]],
+   n:"탄소 공구강재", u:"줄 · 정 등 절삭 공구", build:true},
+  {c:"SKH50", p:[["S","재질 — 강"],["KH","규격명 — 고속도 공구강"],["50","종류 — 50종"]],
+   n:"고속도 공구강 강재", u:"드릴 · 밀링 커터 등 고속 절삭 공구", build:true},
+  {c:"SF440", p:[["S","재질 — 강"],["F","제품명 — 단조품(Forging)"],["440","종류 — 최저 인장 강도 440 N/mm²"]],
+   n:"탄소강 단강품", u:"단조로 만든 축 · 링 등", build:true},
+  {c:"SCM440", p:[["S","재질 — 강"],["CM","규격명 — 크롬 몰리브덴"],["440","종류 — 종류 번호"]],
+   n:"크롬 몰리브덴강", u:"축 · 웜축 · 래크 등 큰 강도와 경화가 필요한 곳", build:false},
+  {c:"SCM415", p:[["S","재질 — 강"],["CM","규격명 — 크롬 몰리브덴"],["415","종류 — 종류 번호"]],
+   n:"크롬 몰리브덴강", u:"편심축 · 슬라이더 (표면 경화 열처리와 함께 씀)", build:false},
+  {c:"SPS7", p:[["S","재질 — 강"],["PS","규격명 — 스프링"],["7","종류 — 7종"]],
+   n:"스프링 강재", u:"코일 스프링 · 판 스프링", build:false},
+  {c:"STB2", p:[["S","재질 — 강"],["TB","규격명 — 고탄소 크롬 베어링"],["2","종류 — 2종"]],
+   n:"고탄소 크롬 베어링 강재", u:"볼 베어링 · 롤러 베어링", build:false},
+  {c:"STS2", p:[["S","재질 — 강"],["TS","규격명 — 합금 공구강"],["2","종류 — 2종"]],
+   n:"합금 공구강재", u:"금형 · 절삭 공구", build:false},
+  {c:"PBC2", p:[["PB","재질 — 인청동"],["C","제품명 — 주물"],["2","종류 — 2종"]],
+   n:"인청동 주물", u:"웜 휠 · 베어링 부시 등 미끄럼 부위", build:false}
+];
+const BUILDABLE=MAT.filter(m=>m.build);
+
+// 교과서 동력 전달 장치 부품란
+const PARTS=[
+  {no:7,nm:"부시",       m:"CAC202", d:"황동 주물품"},
+  {no:6,nm:"좌측 커버",  m:"GC200",  d:"회주철품"},
+  {no:5,nm:"우측 커버",  m:"GC200",  d:"회주철품"},
+  {no:4,nm:"슬라이더",   m:"SCM415", d:"크롬 몰리브덴강 · 전체 열처리 HRC 50±2"},
+  {no:3,nm:"편심축",     m:"SCM415", d:"크롬 몰리브덴강 · 전체 열처리 HRC 50±2"},
+  {no:2,nm:"V 벨트 풀리",m:"GC200",  d:"회주철품"},
+  {no:1,nm:"본체",       m:"GC250",  d:"회주철품"}
+];
+
+/* ============ 배우기 ============ */
+const LEARN=[
+  {title:"① 부품란의 암호, 재료 기호",
+   body:"도면을 만들려면 <b>무엇으로 만들지</b>도 알려 줘야 합니다. 그래서 도면 오른쪽 아래 <b>부품란</b>에는 부품마다 <span class='hl'>재질</span>이 적혀 있습니다.<br><br>이때 ‘회주철’, ‘황동’처럼 한글 이름을 쓰지 않고 <span class='hl'>규격에 정해진 재료 기호</span>를 씁니다. 이름은 부르는 사람마다 다를 수 있지만 기호는 하나뿐이기 때문입니다. (규격이 없는 <b>비금속 재료만</b> 이름을 직접 적습니다.)<br><br>딱 이것만 알면 이 쪽은 끝입니다 — <b>부품란의 알파벳+숫자 = 그 부품의 재료.</b>",
+   widget:"wPart"},
+  {title:"② 규칙은 하나 — 세 부분으로 끊어 읽기",
+   body:"재료 기호는 대개 <span class='hl'>세 부분</span>입니다.<br><br><b>첫 부분 = 재질</b> (무슨 금속인가) · <b>중간 부분 = 규격명·제품명</b> (어떻게 만든/어디에 쓰는 것인가) · <b>끝 부분 = 종류</b> (인장 강도·탄소 함유량·몇 종인가)<br><br>아래에서 재료를 바꿔 가며 조각을 눌러 보세요. <b>끝 숫자의 뜻이 재료마다 다르다</b>는 점이 가장 중요합니다 — <span class='hl'>SM45C의 45는 탄소 0.45%</span>, <span class='hl'>SC450의 450은 인장 강도</span>입니다.",
+   widget:"wDec"},
+  {title:"③ 첫 부분·중간 부분 기호표",
+   body:"외울 것은 많지 않습니다. 우리 수업에서 실제로 만나는 것은 <b>S(강)·GC(회주철)·AL(알루미늄)</b> 정도이고, 중간 부분은 <b>S(일반구조용)·C(주조품)·F(단조품)·M(기계구조용)</b>이 대부분입니다.<br><br>카드를 눌러 <b>기호 ↔ 뜻</b>을 뒤집어 보세요.",
+   widget:"wTable"},
+  {title:"④ 끝에 덧붙는 기호 (열처리·마무리)",
+   body:"필요하면 기호 뒤에 <b>네 번째 부분</b>을 더 붙여 <span class='hl'>조직 상태·열처리·표면 마무리</span>를 나타냅니다.<br><br>가장 많이 보는 것은 <b>A(풀림) · N(불림) · Q(담금질·뜨임)</b>입니다. 열처리 조건이 복잡하면 기호 대신 <b>비고란이나 주서</b>에 ‘전체 열처리 HRC 50±2’처럼 적습니다.",
+   widget:"wSuffix"}
+];
+let page=0, seen=new Set();
+const LKEY="learned_material_symbol";
+try{ if(localStorage.getItem(LKEY)==="1") el("dLearn").classList.remove("hidden"); }catch(e){}
+
+function renderLearn(){
+  const L=LEARN[page];
+  el("learnTitle").innerHTML=L.title; el("learnBody").innerHTML=L.body;
+  ["wPart","wDec","wTable","wSuffix"].forEach(w=>el(w).classList.toggle("hidden",w!==L.widget));
+  el("learnPos").textContent=(page+1)+" / "+LEARN.length;
+  el("learnDots").innerHTML=LEARN.map((_,i)=>
+    '<span class="dot '+(i===page?"on":(seen.has(i)?"seen":""))+'"></span>').join("");
+  el("btnPrev").disabled=page===0;
+  const last=page===LEARN.length-1;
+  el("btnNextPage").classList.toggle("hidden",last);
+  el("btnGoTest").classList.toggle("hidden",!last);
+  seen.add(page);
+  if(L.widget==="wPart") renderPartTable(el("partTable"),null);
+  if(L.widget==="wDec") renderDecoder();
+  if(L.widget==="wTable") renderCards();
+  if(L.widget==="wSuffix") renderSuffix();
+  if(last){ try{ localStorage.setItem(LKEY,"1"); }catch(e){} el("dLearn").classList.remove("hidden"); }
+}
+el("btnPrev").onclick=()=>{ if(page>0){page--;renderLearn();} };
+el("btnNextPage").onclick=()=>{ if(page<LEARN.length-1){page++;renderLearn();} };
+el("btnGoTest").onclick=()=>{
+  fxBanner({icon:"📖",title:"배우기 완료!",sub:"이제 기호를 직접 조립해 봅시다.",stars:3});
+  showTab("tabBuild");
+};
+
+function renderPartTable(node,hiNo){
+  node.innerHTML="<table><tr><th>품번</th><th>품명</th><th>재질</th><th>수량</th><th>비고</th></tr>"+
+    PARTS.map(p=>"<tr class='"+(hiNo===p.no?"hi":"")+"'><td>"+p.no+"</td><td>"+p.nm+
+      "</td><td class='m'>"+p.m+"</td><td>1</td><td>"+(hiNo===p.no?"?":"")+"</td></tr>").join("")+"</table>";
+}
+
+let decIdx=0, decOpen=new Set();
+el("decSeg").innerHTML=MAT.slice(0,11).map((m,i)=>
+  '<button class="segBtn" type="button" data-i="'+i+'" aria-pressed="'+(i===0)+'">'+m.c+'</button>').join("");
+el("decSeg").addEventListener("click",e=>{
+  const b=e.target.closest(".segBtn"); if(!b) return;
+  decIdx=+b.dataset.i; decOpen.clear();
+  el("decSeg").querySelectorAll(".segBtn").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  renderDecoder(); fxRight(b);
+});
+function renderDecoder(){
+  const m=MAT[decIdx];
+  const roles=m.p.length===2?["첫 부분","끝 부분"]:["첫 부분","중간 부분","끝 부분"];
+  el("decoder").innerHTML=m.p.map((p,i)=>
+    '<button class="slot '+(decOpen.has(i)?"open":"")+'" type="button" data-i="'+i+'">'+
+    '<div class="code">'+p[0]+'</div><div class="role">'+roles[i]+'</div>'+
+    '<div class="mean">'+p[1]+'</div></button>').join("");
+  el("decName").textContent=m.n;
+  el("decUse").textContent="쓰이는 곳: "+m.u;
+  el("decHint").textContent=decOpen.size>=m.p.length?"세 조각을 모두 확인했습니다 👍":"조각을 눌러 뜻을 확인하세요.";
+}
+el("decoder").addEventListener("click",e=>{
+  const b=e.target.closest(".slot"); if(!b) return;
+  const i=+b.dataset.i;
+  decOpen.has(i)?decOpen.delete(i):decOpen.add(i);
+  renderDecoder(); fxRight(el("decoder").children[i]);
+});
+el("btnRevealAll").onclick=()=>{ MAT[decIdx].p.forEach((_,i)=>decOpen.add(i)); renderDecoder(); };
+
+let tblWhich="first";
+el("tblSeg").innerHTML='<button class="segBtn" type="button" data-w="first" aria-pressed="true">첫 부분 (재질)</button>'+
+  '<button class="segBtn" type="button" data-w="middle" aria-pressed="false">중간 부분 (규격·제품명)</button>';
+el("tblSeg").addEventListener("click",e=>{
+  const b=e.target.closest(".segBtn"); if(!b) return;
+  tblWhich=b.dataset.w;
+  el("tblSeg").querySelectorAll(".segBtn").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  renderCards();
+});
+function renderCards(){
+  const list=tblWhich==="first"?FIRST:MIDDLE;
+  el("symCards").innerHTML=list.map((r,i)=>
+    '<button class="card" type="button" data-i="'+i+'"><span class="sym">'+r[0]+'</span><span class="nm">'+r[1]+'</span></button>').join("");
+  el("tblTip").innerHTML=tblWhich==="first"
+    ? "같은 <b>S</b>라도 <b>첫 자리면 ‘강’</b>, <b>중간 자리면 ‘일반 구조용 압연재’</b>입니다. 그래서 <code>SS330</code>은 ‘강 + 일반구조용압연재 + 330’이 됩니다."
+    : "중간 부분은 <b>어떻게 만들었나(주조·단조·압연)</b> 또는 <b>어디에 쓰나(공구강·구조용)</b>를 나타냅니다.";
+}
+el("symCards").addEventListener("click",e=>{
+  const b=e.target.closest(".card"); if(!b) return;
+  const r=(tblWhich==="first"?FIRST:MIDDLE)[+b.dataset.i];
+  b.classList.toggle("flip");
+  b.innerHTML=b.classList.contains("flip")
+    ? '<span class="sym">'+r[1]+'</span><span class="nm">'+r[2]+'</span>'
+    : '<span class="sym">'+r[0]+'</span><span class="nm">'+r[1]+'</span>';
+  fxRight(b);
+});
+function renderSuffix(){
+  el("sufTable").innerHTML="<tr><th>구분</th><th>기호</th><th>뜻</th></tr>"+
+    SUFFIX.map(r=>"<tr><td>"+r[0]+"</td><td class='k'>"+r[1]+"</td><td class='nm'>"+r[2]+"</td></tr>").join("");
+}
+
+/* ============ 문제 ============ */
+const qPrompt=el("qPrompt"), qChoices=el("qChoices"), qToast=el("qToast"), qExplain=el("qExplain"),
+      btnSubmit=el("btnSubmit"), btnNext=el("btnNext"), qBuild=el("qBuild"), qPartBox=el("qPart");
+let quiz=null;
+
+// ① 조립
+function qAssemble(){
+  const m=pick(BUILDABLE);
+  const need=m.p.map(p=>p[0]);
+  // SS330 처럼 같은 조각(S)이 두 번 필요한 기호가 있으므로 조각 풀은 중복을 허용해야 한다
+  const chips=need.slice();
+  const all=[].concat(FIRST.map(r=>r[0]),MIDDLE.map(r=>r[0]),
+    BUILDABLE.map(x=>x.p[x.p.length-1][0]));
+  let guard=0;
+  while(chips.length<need.length+4 && guard++<200){
+    const c=pick(all);
+    if(chips.filter(x=>x===c).length < (need.filter(x=>x===c).length+1)) chips.push(c);
+  }
+  return {kind:"build", need, chips:shuffle(chips), mat:m,
+    prompt:"<b>"+m.n+"</b>"+(/탄소 함유량|인장 강도|종/.test(m.p[m.p.length-1][1])
+      ? "<br>"+m.p[m.p.length-1][1].replace("종류 — ","") : "")+
+      "<br>➡ 이 재료의 <b>기호</b>를 조각으로 만들어 보세요. (칸 "+need.length+"개)",
+    explain:"정답은 <code>"+m.c+"</code> — "+m.p.map(p=>"<b>"+p[0]+"</b> "+p[1].replace(/^[^—]+— /,"")).join(" / ")+
+      "<br>쓰이는 곳: "+m.u};
+}
+// ② 해독
+function qDecode(){
+  const t=rnd(3);
+  if(t===0){
+    const m=pick(MAT);
+    const wrong=shuffle(MAT.filter(x=>x.n!==m.n)).slice(0,3).map(x=>x.n);
+    const opts=shuffle([m.n,...wrong]);
+    return {kind:"text", opts, answer:opts.indexOf(m.n),
+      prompt:"부품란에 <b><code style='font-family:ui-monospace,monospace'>"+m.c+"</code></b> 라고 적혀 있습니다. 무슨 재료일까요?",
+      explain:"<code>"+m.c+"</code> = <b>"+m.n+"</b><br>"+m.p.map(p=>"<b>"+p[0]+"</b> · "+p[1]).join("<br>")+
+        "<br>쓰이는 곳: "+m.u};
+  }
+  if(t===1){
+    const m=pick(MAT.filter(x=>x.p.length===3));
+    const last=m.p[m.p.length-1];
+    const cands=["평균 탄소 함유량(%)","최저 인장 강도(N/mm²)","종류 번호(몇 종)","제품의 무게(kg)"];
+    const ansTxt = /탄소/.test(last[1])?cands[0] : /인장/.test(last[1])?cands[1] : cands[2];
+    const opts=shuffle(cands.slice());
+    return {kind:"text", opts, answer:opts.indexOf(ansTxt),
+      prompt:"<b><code style='font-family:ui-monospace,monospace'>"+m.c+"</code></b> 에서 <b>끝의 숫자</b>가 뜻하는 것은?",
+      explain:"<code>"+m.c+"</code> 의 끝부분은 <b>"+last[1].replace("종류 — ","")+"</b> 입니다.<br>"+
+        "끝 숫자의 뜻은 재료마다 다릅니다 — <code>SM45C</code>의 45는 <b>탄소 0.45%</b>, <code>SC450</code>의 450은 <b>최저 인장 강도</b>, <code>SCP1</code>의 1은 <b>1종</b>."};
+  }
+  const r=pick(SUFFIX);
+  const wrong=shuffle(SUFFIX.filter(x=>x[2]!==r[2])).slice(0,3).map(x=>x[2]);
+  const opts=shuffle([r[2],...wrong]);
+  return {kind:"text", opts, answer:opts.indexOf(r[2]),
+    prompt:"재료 기호 <b>끝에 덧붙이는 기호</b> 중 <b><code style='font-family:ui-monospace,monospace'>"+r[1]+"</code></b> 의 뜻은?",
+    explain:"<b>"+r[1]+"</b> = "+r[2]+" ("+r[0]+")<br>많이 쓰는 것 — <b>A 풀림 · N 불림 · Q 담금질·뜨임</b>."};
+}
+// ③ 부품란 읽기
+function qPartRead(){
+  if(rnd(2)===0){
+    const p=pick(PARTS);
+    const m=MAT.find(x=>x.c===p.m) || {n:p.d.split(" · ")[0]};
+    const pool=["회주철품","크롬 몰리브덴강","황동 주물품","기계 구조용 탄소강","탄소 주강품","인청동 주물"];
+    const ans=p.d.split(" · ")[0];
+    const opts=shuffle([ans,...shuffle(pool.filter(x=>x!==ans)).slice(0,3)]);
+    return {kind:"text", part:p.no, opts, answer:opts.indexOf(ans),
+      prompt:"부품란에서 <b>품번 "+p.no+" ("+p.nm+")</b> 의 재질은 <b><code style='font-family:ui-monospace,monospace'>"+p.m+"</code></b> 입니다. 무슨 재료일까요?",
+      explain:"<code>"+p.m+"</code> = <b>"+ans+"</b><br>"+(m.p?m.p.map(x=>"<b>"+x[0]+"</b> "+x[1]).join(" / "):"")+
+        "<br>"+p.d};
+  }
+  const Q=[
+    {p:"부품란에서 <b>본체·커버·V 벨트 풀리</b>에 모두 <code>GC</code> 계열(회주철)을 쓴 이유로 가장 알맞은 것은?",
+     o:["복잡한 모양을 주조로 만들기 쉽고 진동을 잘 흡수해서","가장 비싸고 단단해서","무게가 가장 가벼워서","녹이 전혀 슬지 않아서"],a:0,
+     e:"회주철(GC)은 <b>주조성이 좋아 복잡한 형상</b>을 만들기 쉽고 <b>진동 흡수</b>가 좋아 본체·베이스에 많이 씁니다."},
+    {p:"부품란에서 <b>편심축·슬라이더</b>에 <code>SCM415</code>를 쓰고 비고에 ‘전체 열처리 HRC 50±2’를 적었습니다. 이때 <code>HRC</code>는 무엇인가?",
+     o:["경도(단단한 정도)","인장 강도","탄소 함유량","표면 거칠기"],a:0,
+     e:"<b>HRC = 로크웰 경도 C 스케일</b>. 축처럼 마찰이 심한 부품은 열처리로 <b>단단하게</b> 만듭니다."},
+    {p:"규격이 정해져 있지 <b>않은 비금속 재료</b>는 부품란에 어떻게 적는가?",
+     o:["재료명을 직접 적는다","가장 비슷한 금속 기호를 적는다","비워 둔다","‘기타’라고 적는다"],a:0,
+     e:"규격 기호가 없으므로 <b>재료명을 그대로</b> 적습니다. 금속은 반드시 규격 기호로 적습니다."},
+    {p:"부품란(재질칸)에 적는 것으로 <b>올바른</b> 것은?",
+     o:["SM45C 처럼 규격에 정해진 재료 기호","‘단단한 쇠’ 같은 설명","부품의 무게","가공 시간"],a:0,
+     e:"이름은 사람마다 다르게 부를 수 있으므로 <b>규격 기호</b>로 통일해 적습니다."},
+    {p:"열처리 조건이 복잡해서 기호로 다 못 나타낼 때는 어디에 적는가?",
+     o:["부품란의 비고란이나 주서","표제란의 척도란","도면 바깥 여백","적지 않는다"],a:0,
+     e:"‘전체 열처리 HRC 50±2’처럼 <b>비고란이나 주서</b>에 적습니다."}
+  ];
+  const q=pick(Q); const idx=q.o.map((t,i)=>i); shuffle(idx);
+  return {kind:"text", part:null, opts:idx.map(i=>q.o[i]), answer:idx.indexOf(q.a),
+    prompt:q.p, explain:q.e, showPart:true};
+}
+// ④ 구성 개념
+function qStruct(){
+  const Q=[
+    {p:"기계 재료 기호는 보통 <b>몇 부분</b>으로 구성되는가?",
+     o:["3부분 (필요하면 4부분)","2부분","4부분 고정","정해져 있지 않다"],a:0,
+     e:"<b>첫 부분(재질) + 중간 부분(규격·제품명) + 끝 부분(종류)</b> 3부분이 기본이고, 열처리 등을 덧붙이면 4부분이 됩니다."},
+    {p:"재료 기호의 <b>첫 부분</b>이 나타내는 것은?",
+     o:["재질(무슨 금속인가)","제품의 종류 번호","최저 인장 강도","열처리 방법"],a:0,
+     e:"첫 부분은 <b>재질</b>. S 강 · GC 회주철 · Al 알루미늄 · Cu 구리 · Bs 황동 …"},
+    {p:"재료 기호의 <b>중간 부분</b>이 나타내는 것은?",
+     o:["규격명·제품명(주조품·단조품·판·관 등)","탄소 함유량","제조 회사","표면 거칠기"],a:0,
+     e:"중간 부분은 <b>어떻게 만들었나·어디에 쓰나</b>. C 주조품 · F 단조품 · P 판 · T 관 · W 선 · CP 냉간압연강판 …"},
+    {p:"<code>SS330</code>에서 <b>앞의 S</b>와 <b>뒤의 S</b>는 각각 무엇인가?",
+     o:["앞 S = 강, 뒤 S = 일반 구조용 압연재","앞 S = 일반 구조용, 뒤 S = 강","둘 다 강","둘 다 일반 구조용 압연재"],a:0,
+     e:"<b>자리에 따라 뜻이 달라집니다.</b> 첫 자리 S는 재질 ‘강’, 중간 자리 S는 제품명 ‘일반 구조용 압연재’, 330은 최저 인장 강도."},
+    {p:"<code>SM45C</code>의 <b>45C</b>가 뜻하는 것은?",
+     o:["평균 탄소 함유량 0.45%","최저 인장 강도 45","45종","경도 45"],a:0,
+     e:"기계 구조용 탄소강은 끝부분이 <b>탄소 함유량</b>입니다. 0.42~0.48%의 중간값을 따 <b>45C</b>."},
+    {p:"<code>GC250</code>의 <b>250</b>이 뜻하는 것은?",
+     o:["최저 인장 강도 250 N/mm²","탄소 함유량 2.50%","250종","무게 250g"],a:0,
+     e:"<b>GC = 회주철</b>, 250은 <b>최저 인장 강도(N/mm² = MPa)</b>입니다."},
+    {p:"<code>ALDC6</code>을 바르게 끊어 읽은 것은?",
+     o:["AL(알루미늄) + DC(다이캐스팅) + 6(6종)","A(강) + LDC(합금) + 6","AL(알루미늄) + D(단조) + C6","ALD(합금) + C6(탄소)"],a:0,
+     e:"<b>AL 알루미늄 + DC 다이캐스팅 + 6종</b>. 다이캐스팅은 녹인 금속을 금형에 압입해 굳히는 방법입니다."},
+    {p:"재료 기호 끝에 <b>N</b>을 덧붙이면?",
+     o:["노멀라이징(불림)한 상태","어닐링(풀림)한 상태","니켈이 들어 있음","무광택 마무리"],a:0,
+     e:"<b>N = 노멀라이징(불림)</b>, A = 어닐링(풀림), Q = 퀜칭(담금질)·템퍼링(뜨임)."},
+    {p:"다음 중 <b>회주철</b>을 나타내는 기호는?",
+     o:["GC","SC","SF","SS"],a:0,
+     e:"<b>GC</b> = Gray Casting(회주철). SC 탄소 주강품 · SF 탄소강 단강품 · SS 일반 구조용 압연 강재."},
+    {p:"다음 중 <b>탄소 주강품</b>을 나타내는 기호는?",
+     o:["SC450","SM45C","SS400","GC250"],a:0,
+     e:"<b>SC = 강(S) + 주조품(C)</b>. SM45C는 기계 구조용 탄소강, SS는 일반 구조용 압연 강재, GC는 회주철품."}
+  ];
+  const q=pick(Q); const idx=q.o.map((t,i)=>i); shuffle(idx);
+  return {kind:"text", opts:idx.map(i=>q.o[i]), answer:idx.indexOf(q.a), prompt:q.p, explain:q.e};
+}
+
+const GEN={
+  build:qAssemble, read:qDecode, part:qPartRead,
+  exam:()=>pick([qAssemble,qAssemble,qDecode,qDecode,qPartRead,qStruct,qStruct])()
+};
+
+/* --- 조립 위젯 --- */
+let bFill=[];
+function renderBuild(){
+  const q=quiz.q;
+  el("bSlots").innerHTML=q.need.map((_,i)=>
+    '<button class="bslot '+(bFill[i]?"filled":"")+(quiz.answered?(bFill[i]===q.need[i]?" ok":" no"):"")+
+    '" type="button" data-i="'+i+'">'+
+    (bFill[i]?'<span class="val">'+bFill[i]+'</span>'
+             :'<span class="ph">'+(i===0?"첫 부분<br>재질":(i===q.need.length-1?"끝 부분<br>종류":"중간 부분<br>규격·제품"))+'</span>')+
+    '</button>').join("");
+  const used={}; bFill.forEach(v=>{ if(v) used[v]=(used[v]||0)+1; });
+  const seenCnt={};
+  el("bPool").innerHTML=q.chips.map((c,i)=>{
+    seenCnt[c]=(seenCnt[c]||0)+1;
+    const isUsed=(used[c]||0)>=seenCnt[c];
+    return '<button class="chip '+(isUsed?"used":"")+'" type="button" data-c="'+c+'" '+(quiz.answered?"disabled":"")+'>'+c+'</button>';
+  }).join("");
+  btnSubmit.disabled=quiz.answered||bFill.filter(Boolean).length<q.need.length;
+}
+el("bPool").addEventListener("click",e=>{
+  const b=e.target.closest(".chip"); if(!b||quiz.answered||b.classList.contains("used")) return;
+  const i=bFill.findIndex(v=>!v); if(i<0) return;
+  bFill[i]=b.dataset.c; renderBuild(); fxRight(el("bSlots").children[i]);
+});
+el("bSlots").addEventListener("click",e=>{
+  const b=e.target.closest(".bslot"); if(!b||quiz.answered) return;
+  const i=+b.dataset.i; if(!bFill[i]) return;
+  bFill[i]=null; renderBuild();
+});
+
+function renderQ(){
+  const q=quiz.q;
+  qPrompt.innerHTML=q.prompt;
+  qBuild.classList.toggle("hidden",q.kind!=="build");
+  qPartBox.classList.toggle("hidden",!(q.part!==undefined&&(q.part!==null||q.showPart)));
+  if(q.part!==undefined&&(q.part!==null||q.showPart)) renderPartTable(qPartBox,q.part);
+  qChoices.innerHTML="";
+  const old=el("rcBtn"); if(old) old.remove();
+  quiz.answered=false; quiz.sel=null;
+  if(q.kind==="build"){ bFill=q.need.map(()=>null); renderBuild(); }
+  else{
+    qChoices.classList.toggle("one", q.opts.some(t=>t.replace(/<[^>]+>/g,"").length>24));
+    q.opts.forEach((t,i)=>{
+      const b=document.createElement("button");
+      b.className="choice"; b.type="button";
+      b.innerHTML='<span class="num">'+"①②③④"[i]+'</span><span class="tx">'+t+'</span>';
+      b.onclick=()=>{ if(quiz.answered) return; quiz.sel=i; btnSubmit.disabled=false;
+        qChoices.querySelectorAll(".choice").forEach(x=>x.classList.toggle("sel",x===b)); };
+      qChoices.appendChild(b);
+    });
+    btnSubmit.disabled=true;
+  }
+  btnSubmit.classList.remove("hidden");
+  btnNext.classList.add("hidden"); qExplain.classList.add("hidden");
+  qToast.className="toast go";
+  qToast.innerHTML=q.kind==="build"?"조각을 눌러 칸을 모두 채운 뒤 <b>제출</b>하세요."
+                                   :"보기를 고른 뒤 <b>제출</b>을 누르세요.";
+  el("qRound").textContent=quiz.round; el("qTotal").textContent=quiz.total;
+  el("qScore").textContent=quiz.score; el("qCombo").textContent="연속 "+quiz.combo;
+}
+function submitQ(){
+  if(quiz.answered) return;
+  const q=quiz.q;
+  let ok;
+  if(q.kind==="build"){
+    if(bFill.filter(Boolean).length<q.need.length) return;
+    ok=bFill.every((v,i)=>v===q.need[i]);
+    quiz.answered=true; renderBuild();
+    ok?fxRight(el("bSlots")):fxWrong(el("bSlots"));
+  }else{
+    if(quiz.sel==null) return;
+    quiz.answered=true; ok=quiz.sel===q.answer;
+    const btns=qChoices.querySelectorAll(".choice");
+    btns.forEach((b,i)=>{ b.disabled=true; b.classList.remove("sel");
+      if(i===q.answer) b.classList.add("correct"); else if(i===quiz.sel) b.classList.add("wrong"); });
+    ok?fxRight(btns[quiz.sel]):fxWrong(btns[quiz.sel]);
+  }
+  if(ok){quiz.score++;quiz.combo++;quiz.best=Math.max(quiz.best,quiz.combo);}
+  else {quiz.combo=0; quiz.wrong.push(quiz.round);}
+  el("qScore").textContent=quiz.score; el("qCombo").textContent="연속 "+quiz.combo;
+  qToast.className="toast "+(ok?"ok":"no");
+  qToast.textContent=ok?(quiz.combo>=3?"정답! "+quiz.combo+"연속 🔥":"정답이에요!")
+    :(q.kind==="build"?"아쉬워요. 정답은 "+q.mat.c+" 입니다.":"아쉬워요. 정답은 "+"①②③④"[q.answer]+"번.");
+  qExplain.innerHTML=q.explain; qExplain.classList.remove("hidden");
+  btnSubmit.classList.add("hidden"); btnNext.classList.remove("hidden");
+  btnNext.textContent = quiz.round>=quiz.total?"결과 보기 →":"다음 문제 →";
+}
+function startQuiz(type,total){
+  quiz={type,total:total||8,round:1,score:0,combo:0,best:0,answered:false,sel:null,
+        q:null,wrong:[],started:Date.now()};
+  quiz.q=GEN[type](); renderQ();
+}
+btnSubmit.onclick=submitQ;
+btnNext.onclick=()=>{ if(quiz.round>=quiz.total){finish();return;} quiz.round++; quiz.q=GEN[quiz.type](); renderQ(); };
+el("btnRestart").onclick=()=>startQuiz(quiz.type,quiz.total);
+
+function finish(){
+  const pct=Math.round(quiz.score/quiz.total*100), sec=Math.round((Date.now()-quiz.started)/1000);
+  qBuild.classList.add("hidden"); qPartBox.classList.add("hidden"); qChoices.innerHTML="";
+  qPrompt.innerHTML="🎉 <b>"+quiz.total+"문제 완료!</b>";
+  qToast.className="toast "+(pct>=80?"ok":pct>=60?"go":"no");
+  qToast.textContent=pct+"점 · "+quiz.score+"/"+quiz.total+" 정답 · 최고 "+quiz.best+"연속 · "+sec+"초";
+  qExplain.classList.remove("hidden");
+  qExplain.innerHTML= pct>=80?"훌륭합니다! 이제 도면 부품란을 혼자 읽을 수 있습니다."
+    : pct>=60?"좋아요. <b>📖 배우기 ②쪽</b>에서 <code>SM45C</code>와 <code>SC450</code>의 <b>끝 숫자 뜻 차이</b>를 다시 확인해 보세요."
+    : "<b>📖 배우기</b>로 돌아가 조각을 눌러 보세요. <b>첫=재질 / 중간=제품명 / 끝=종류</b> 이 셋만 잡으면 됩니다.";
+  btnSubmit.classList.add("hidden"); btnNext.classList.add("hidden");
+  fxBanner({icon:pct>=80?"🏆":"💪", title:pct+"점!",
+            sub:quiz.score+" / "+quiz.total+" 정답 · "+sec+"초", stars:fxStars(quiz.total-quiz.score)});
+  const old=el("rcBtn"); if(old) old.remove();
+  if(window.ResultCollector && quiz.type==="exam"){
+    const endpoint=ResultCollector.config && ResultCollector.config.endpoint;
+    if(endpoint){
+      const btn=document.createElement("button");
+      btn.id="rcBtn"; btn.className="btn"; btn.style.marginTop="12px";
+      btn.textContent="🧑‍🏫 선생님께 결과 제출";
+      btn.onclick=()=>{ try{ ResultCollector.open({score:pct,correct:quiz.score,total:quiz.total,
+        wrong:quiz.wrong,durationSec:sec}); }catch(e){} };
+      qExplain.after(btn);
+    }
+  }
+}
+
+/* ============ 탭 ============ */
+const TABS={tabLearn:null, tabBuild:"build", tabRead:"read", tabPart:"part", tabExam:"exam"};
+function showTab(id){
+  Object.keys(TABS).forEach(t=>el(t).setAttribute("aria-pressed",t===id));
+  const isLearn=id==="tabLearn";
+  el("secLearn").classList.toggle("hidden",!isLearn);
+  el("secQuiz").classList.toggle("hidden",isLearn);
+  if(isLearn) renderLearn();
+  else startQuiz(TABS[id], id==="tabExam"?10:8);
+}
+Object.keys(TABS).forEach(t=>el(t).onclick=()=>showTab(t));
+
+renderLearn();
+})();
+</script>
+</body>
+</html>
