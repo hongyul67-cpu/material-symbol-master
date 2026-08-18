@@ -710,7 +710,8 @@ function submitQ(){
     ok?fxRight(btns[quiz.sel]):fxWrong(btns[quiz.sel]);
   }
   if(ok){quiz.score++;quiz.combo++;quiz.best=Math.max(quiz.best,quiz.combo);}
-  else {quiz.combo=0; quiz.wrong.push(quiz.round);}
+  else {quiz.combo=0; quiz.wrong.push(quiz.round);
+        quiz.wrongDetail.push({round:quiz.round, q:q, sel:quiz.sel, built:(q.kind==="build"?(bFill||[]).join(""):null), opts:(typeof examOptTexts==="function"?examOptTexts():null)});}
   el("qScore").textContent=quiz.score; el("qCombo").textContent="연속 "+quiz.combo;
   qToast.className="toast "+(ok?"ok":"no");
   qToast.textContent=ok?(quiz.combo>=3?"정답! "+quiz.combo+"연속 🔥":"정답이에요!")
@@ -722,7 +723,7 @@ function submitQ(){
 function startQuiz(type,total){
   const rv=el("qReview"); if(rv) rv.remove();
   quiz={type,total:total||8,round:1,score:0,combo:0,best:0,answered:false,sel:null,rev:[],
-        q:null,wrong:[],started:Date.now()};
+        q:null,wrong:[],wrongDetail:[],started:Date.now()};
   quiz.q=GEN[type](); renderQ();
 }
 btnSubmit.onclick=submitQ;
@@ -736,7 +737,8 @@ let EXAM_MASK=false;
 function examCv(){ return null; }
 function examRedraw(q){ if(q.kind==="build") renderBuild(); }
 function examMaskNow(q, sel, ok, shot, explainHtml, opts){
-  quiz.rev.push({round:quiz.round, q:q, sel:sel, ok:ok, shot:shot, explain:explainHtml, opts:opts});
+  quiz.rev.push({round:quiz.round, q:q, sel:sel, ok:ok, shot:shot, explain:explainHtml, opts:opts,
+                 built:(q && q.kind==="build" ? (bFill||[]).join("") : null)});
   qChoices.querySelectorAll(".choice").forEach(b=>b.classList.remove("correct","wrong","sel"));
   qToast.className="toast go";
   qToast.textContent="제출했어요 · 채점은 마지막에 한꺼번에 합니다";
@@ -770,7 +772,14 @@ function examOptTexts(){
     return ((t?t.innerText:b.innerText)||"").replace(/\s+/g," ").trim();
   });
 }
+var BUILD_ANS = "__build_answer__";   /* 조각 만들기 문항의 정답 자리 표식 */
+function buildAwareAnswer(r){ return (r && r.q && r.q.kind==="build") ? BUILD_ANS : r.q.answer; }
 function examAnsText(r, i){
+  /* 조각으로 기호 만들기 — 보기 번호가 없으니 만든 기호와 정답 기호를 직접 보여준다 */
+  if(r && r.q && r.q.kind==="build"){
+    if(i===BUILD_ANS) return (r.q.mat && r.q.mat.c) ? r.q.mat.c : (r.q.need||[]).join("");
+    return (r.built && r.built.length) ? r.built : "미완성";
+  }
   if(i==null) return "무응답";
   if(r.opts && r.opts[i]) return ("①②③④"[i]||"")+" "+r.opts[i];
   const q=r.q;
@@ -797,7 +806,7 @@ function examReview(){
        (r.shot?'<img src="'+r.shot+'" alt="문제 그림" style="width:100%;border-radius:8px;margin-bottom:8px">':'')+
        '<div style="font-size:14px;margin-bottom:8px">'+(r.q.prompt||"")+'</div>'+
        '<div style="font-size:13px;margin-bottom:3px">내 답 — '+examAnsText(r,r.sel)+'</div>'+
-       '<div style="font-size:13px;font-weight:700;margin-bottom:6px">정답 — '+examAnsText(r,r.q.answer)+'</div>'+
+       '<div style="font-size:13px;font-weight:700;margin-bottom:6px">정답 — '+examAnsText(r,buildAwareAnswer(r))+'</div>'+
        (r.explain?'<div style="font-size:13px;line-height:1.6;opacity:.9">'+r.explain+'</div>':'')+
        '</div>';
   });
@@ -826,6 +835,27 @@ function rcAttach(anchor, payloadFn, opts){
   };
   anchor.after ? anchor.after(b) : anchor.parentNode.insertBefore(b, anchor.nextSibling);
 }
+/* ── 오답을 "무엇을 틀렸는지"로 남긴다 (규약 §1 ②) ──
+   시험은 quiz.rev 에 문항이 다 들어 있고, 연습은 quiz.wrongDetail 에 모은다.
+   결과 예) "3번 ① 정육면체 전개도→② 원뿔 전개도" */
+function rcShort(t,n){
+  t=String(t==null?"":t).replace(/<[^>]*>/g," ")
+    .replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&amp;/g,"&")
+    .replace(/\s+/g," ").trim();
+  t=t.replace(/^(?:[\u2460-\u2469]\s*)+/,"");   // 겹쳐 붙은 보기 번호 정리
+  return t.length>n ? t.slice(0,n-1)+"\u2026" : t;
+}
+function rcWrongList(){
+  var src = (quiz && quiz.rev && quiz.rev.length)
+    ? quiz.rev.filter(function(r){ return !r.ok; })
+    : ((quiz && quiz.wrongDetail) || []);
+  return src.map(function(r){
+    var mine, ans;
+    try{ mine = rcShort(examAnsText(r, r.sel), 16); }catch(e){ mine = "(응답)"; }
+    try{ ans  = rcShort(examAnsText(r, buildAwareAnswer(r)), 16); }catch(e){ ans = "(정답)"; }
+    return r.round + "\ubc88 " + mine + "\u2192" + ans;
+  });
+}
 /* 제출 시 기록될 활동명과 생기부 키워드 */
 const MODE_LABEL={build:"재료기호 — 기호 조립", read:"재료기호 — 기호 해독", part:"재료기호 — 부품란 읽기", exam:"재료기호 — 종합시험"};
 const MODE_EXTRA={build:["재료기호 구성 이해"], read:["재료기호 해독"], part:["부품란 해석"], exam:["재료기호 종합 이해"]};
@@ -848,7 +878,7 @@ function finish(){
   if(quiz.type==="exam"){ try{ rcAnchor=examReview()||qExplain; }catch(e){} }
   if(window.ResultCollector){
     rcAttach(rcAnchor,
-      ()=>({score:pct, correct:quiz.score, total:quiz.total, wrong:quiz.wrong, durationSec:sec}),
+      ()=>({score:pct, correct:quiz.score, total:quiz.total, wrong:rcWrongList(), durationSec:sec}),
       { mode: MODE_LABEL[quiz.type] || quiz.type, extra: MODE_EXTRA[quiz.type] || [] });
   }
 }
