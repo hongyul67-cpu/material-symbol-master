@@ -191,6 +191,8 @@
       <div id="wSuffix" class="hidden">
         <table class="t parts" id="sufTable"></table>
         <div class="explain" style="margin-top:12px">부품란에 <code>SCM415</code>만 쓰고 열처리는 <b>비고란이나 주서</b>에 적기도 합니다. 예: <b>전체 열처리 HRC 50±2</b>.</div>
+        <div id="htFig" style="margin-top:12px"></div>
+        <table class="t parts" id="htTable" style="margin-top:12px"></table>
       </div>
 
       <div class="btnrow">
@@ -403,13 +405,40 @@ const LEARN=[
    body:"외울 것은 많지 않습니다. 우리 수업에서 실제로 만나는 것은 <b>S(강)·GC(회주철)·AL(알루미늄)</b> 정도이고, 중간 부분은 <b>S(일반구조용)·C(주조품)·F(단조품)·M(기계구조용)</b>이 대부분입니다.<br><br>카드를 눌러 <b>기호 ↔ 뜻</b>을 뒤집어 보세요.",
    widget:"wTable"},
   {title:"④ 끝에 덧붙는 기호 (열처리·마무리)",
-   body:"필요하면 기호 뒤에 <b>네 번째 부분</b>을 더 붙여 <span class='hl'>조직 상태·열처리·표면 마무리</span>를 나타냅니다.<br><br>가장 많이 보는 것은 <b>A(풀림) · N(불림) · Q(담금질·뜨임)</b>입니다. 열처리 조건이 복잡하면 기호 대신 <b>비고란이나 주서</b>에 ‘전체 열처리 HRC 50±2’처럼 적습니다.",
+   body:"필요하면 기호 뒤에 <b>네 번째 부분</b>을 더 붙여 <span class='hl'>조직 상태·열처리·표면 마무리</span>를 나타냅니다.<br><br>가장 많이 보는 것은 <b>A(풀림) · N(불림) · Q(담금질·뜨임)</b>입니다.<br><br>도면에 표시하는 자리도 정해져 있습니다 — <b>부품 전체</b>를 열처리하면 부품란이나 주서에 적고, <b>부품의 일부</b>만 열처리하면 그 자리의 외형선에 <span class='hl'>나란히 조금 떼어서 굵은 1점 쇄선</span>을 긋고 열처리 방법을 적습니다. 열처리 조건이 복잡하면 기호 대신 <b>비고란이나 주서</b>에 ‘전체 열처리 HRC 50±2’처럼 적습니다.",
    widget:"wSuffix"}
 ];
 let page=0, seen=new Set();
 const LKEY="learned_material_symbol";
 try{ if(localStorage.getItem(LKEY)==="1") el("dLearn").classList.remove("hidden"); }catch(e){}
 
+/* 열처리를 도면에 어떻게 표시하는가 — 기계제도 Ⅰ-9 */
+const HEAT=[
+  ["담금질 (quenching)","강을 912℃ 정도로 가열한 뒤 물이나 기름에 <b>급랭</b>해 단단하게 함"],
+  ["뜨임 (tempering)","담금질한 재료를 일정 온도로 다시 가열해 식혀 <b>인성</b>을 높임"],
+  ["풀림 (annealing)","912℃ 정도로 가열한 뒤 <b>노 안에서 서서히</b> 식혀 내부 응력을 없앰"],
+  ["불림 (normalizing)","풀림과 같은 온도로 가열한 뒤 <b>공기 중에서</b> 식힘 (제품이 커서 노에 못 넣을 때)"],
+  ["표면 경화 (case hardening)","재료의 <b>표면만</b> 단단하게 하는 작업"]
+];
+function renderHeat(){
+  const f=el("htFig");
+  if(f) f.innerHTML =
+    '<div style="background:var(--paper,#f4efe0);border-radius:10px;padding:10px">'+
+    '<svg viewBox="0 0 300 96" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:106px;display:block">'+
+      '<text x="8" y="12" fill="#5b7286" font-size="9">부품 전체</text>'+
+      '<rect x="8" y="22" width="120" height="40" fill="#c9d4e2" stroke="#1c3247" stroke-width="2"/>'+
+      '<text x="8" y="78" fill="#1c3247" font-size="9">부품란·주서에 적는다</text>'+
+      '<text x="8" y="90" fill="#c2410c" font-size="9">전체 열처리 HRC 50±2</text>'+
+      '<text x="168" y="12" fill="#5b7286" font-size="9">부품 일부</text>'+
+      '<rect x="168" y="22" width="120" height="40" fill="#c9d4e2" stroke="#1c3247" stroke-width="2"/>'+
+      '<line x1="228" y1="17" x2="288" y2="17" stroke="#c2410c" stroke-width="3" stroke-dasharray="16,4,3,4"/>'+
+      '<text x="168" y="78" fill="#1c3247" font-size="9">외형선에 나란히 조금 떼어서</text>'+
+      '<text x="168" y="90" fill="#c2410c" font-size="9">굵은 1점 쇄선 + 열처리 방법</text>'+
+    '</svg></div>';
+  const t=el("htTable");
+  if(t) t.innerHTML='<tr><th>강의 열처리</th><th>무엇을 하는가</th></tr>'+
+    HEAT.map(r=>'<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td></tr>').join("");
+}
 function renderLearn(){
   const L=LEARN[page];
   el("learnTitle").innerHTML=L.title; el("learnBody").innerHTML=L.body;
@@ -425,7 +454,7 @@ function renderLearn(){
   if(L.widget==="wPart") renderPartTable(el("partTable"),null);
   if(L.widget==="wDec") renderDecoder();
   if(L.widget==="wTable") renderCards();
-  if(L.widget==="wSuffix") renderSuffix();
+  if(L.widget==="wSuffix") renderSuffix(); renderHeat();
   if(last){ try{ localStorage.setItem(LKEY,"1"); }catch(e){} el("dLearn").classList.remove("hidden"); }
 }
 el("btnPrev").onclick=()=>{ if(page>0){page--;renderLearn();} };
