@@ -619,8 +619,11 @@ function qPartRead(){
     const opts=shuffle([ans,...shuffle(pool.filter(x=>x!==ans)).slice(0,3)]);
     return {kind:"text", part:p.no, opts, answer:opts.indexOf(ans),
       prompt:"부품란에서 <b>품번 "+p.no+" ("+p.nm+")</b> 의 재질은 <b><code style='font-family:ui-monospace,monospace'>"+p.m+"</code></b> 입니다. 무슨 재료일까요?",
-      explain:"<code>"+p.m+"</code> = <b>"+ans+"</b><br>"+(m.p?m.p.map(x=>"<b>"+x[0]+"</b> "+x[1]).join(" / "):"")+
-        "<br>"+p.d};
+      /* CAC202·GC200 처럼 MAT 에 없는 코드는 조각 설명이 비어 있다.
+         그때 p.d 까지 붙이면 재료 이름만 두 번 나오므로, 이름과 다를 때만 덧붙인다. */
+      explain:"<code>"+p.m+"</code> = <b>"+ans+"</b>"+
+        (m.p?"<br>"+m.p.map(x=>"<b>"+x[0]+"</b> "+x[1]).join(" / "):"")+
+        (p.d!==ans?"<br>"+p.d:"")};
   }
   const Q=[
     {p:"부품란에서 <b>본체·커버·V 벨트 풀리</b>에 모두 <code>GC</code> 계열(회주철)을 쓴 이유로 가장 알맞은 것은?",
